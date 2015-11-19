@@ -46,6 +46,11 @@ public class AdendaWonderPushReceiver extends WonderPushBroadcastReceiver
 	        bIsAdenda = custom.getBoolean(ADENDA_LOCKSCREEN_PARAM);
 	        String sWpExtras = extras.getString(WONDERPUSH_NOTIFICATION_EXTRA_KEY);
 	        
+	        // If it is an Adenda message, but we're not opted in
+	        if (bIsAdenda && !AdendaAgent.isOptedIn(context))
+	        	// Just ignore the message, but mark it as processed
+	        	return true;
+	        
 	        if (bIsAdenda && sWpExtras != null && !sWpExtras.isEmpty())
 	        {
 	        	JSONObject wpData = new JSONObject(sWpExtras);
@@ -88,8 +93,7 @@ public class AdendaWonderPushReceiver extends WonderPushBroadcastReceiver
 	        	else
 	        		AdendaAgent.addCustomFragmentContent(context.getApplicationContext(), null, WpHtmlLockscreenFragment.class.getName(), args, sIdentifier, false, true);
 				// Flush Content so that the Urban Airship notification screen appears right away
-            	AdendaAgent.flushContentCache(context.getApplicationContext());
-	        	
+            	AdendaAgent.flushContentCache(context.getApplicationContext());	        	
 	        }
 	    } catch (JSONException e) {
 	        Log.e(AdendaWonderPushReceiver.class.getSimpleName(), e.getLocalizedMessage() != null ? e.getLocalizedMessage() : "Exception handling broadcast message");
