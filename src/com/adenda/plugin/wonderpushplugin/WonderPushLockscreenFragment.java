@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,10 @@ import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
+
+import com.wonderpush.sdk.AdendaWonderPush;
+
+import sdk.adenda.lockscreen.AdendaAgent;
 import sdk.adenda.lockscreen.fragments.AdendaFragmentInterface;
 import sdk.adenda.widget.DateTimeFragment;
 
@@ -22,6 +27,7 @@ public class WonderPushLockscreenFragment extends Fragment implements AdendaFrag
 {
 	protected static final String NOTIF_CAMPAIGN_ID = "notification_campaign_id";
 	protected static final String NOTIF_NOTIF_ID = "notification_notif_id";
+	protected static final String NOTIF_NOTIF_TAG = "notification_notif_tag";
 	
 	private static final int DEFAULT_DATE_TIME_TXT_COLOR = 0xFF000000;
 	private static final int DEFAULT_BACKGROUND_COLOR = 0XFFFFFFFF;
@@ -36,6 +42,7 @@ public class WonderPushLockscreenFragment extends Fragment implements AdendaFrag
 	private boolean mExpandWebView;
 	private String mCampaignId;
 	private String mNotifId;
+	private String mNotifTag;
 	protected ProgressBar mProgressBar;
 	
 	@Override
@@ -48,6 +55,7 @@ public class WonderPushLockscreenFragment extends Fragment implements AdendaFrag
 		{
 			mCampaignId = args.getString(NOTIF_CAMPAIGN_ID);
 			mNotifId = args.getString(NOTIF_NOTIF_ID);
+			mNotifTag = args.getString(NOTIF_NOTIF_TAG);
 			
 			Long txtColor = getDateTimeColor(args);
 			mDateTimeColor =  txtColor != null ? (int)txtColor.longValue() : DEFAULT_DATE_TIME_TXT_COLOR;
@@ -76,7 +84,7 @@ public class WonderPushLockscreenFragment extends Fragment implements AdendaFrag
 		if (dateTimeContainer != null)
 		{
 			dateTimeContainer.setBackgroundColor(mBackgroundColor);
-			DateTimeFragment dateTimeFragment = DateTimeFragment.newInstance(DateTimeFragment.TXT_CENTER_JUSTIFY, mDateTimeColor, false);
+			DateTimeFragment dateTimeFragment = DateTimeFragment.newInstance(DateTimeFragment.TXT_CENTER_JUSTIFY, null, mDateTimeColor, false, AdendaAgent.getEnable12hourMode(getActivity()));
 			getChildFragmentManager().beginTransaction().replace(R.id.date_time_container, dateTimeFragment).commit();
 		}
 	
@@ -103,6 +111,9 @@ public class WonderPushLockscreenFragment extends Fragment implements AdendaFrag
 	{
 		super.onActivityCreated(savedInstanceState);
 		AdendaWonderPush.initialize(getActivity());
+
+		if (mNotifTag != null && !mNotifTag.isEmpty())
+			NotificationManagerCompat.from(getContext()).cancel(mNotifTag, 0);
 	}
 	
 	protected void loadNotifContent(View view)
@@ -150,6 +161,12 @@ public class WonderPushLockscreenFragment extends Fragment implements AdendaFrag
     {
     	return getHexParam(message, ADENDA_DATETIME_COLOR_PARAM);
     }
+
+	// Check validity of hexadecimal number
+	private static boolean isHexValid(String color)
+	{
+		return color.matches("[a-fA-F0-9]{8}");
+	}
     
     private Long getHexParam( Bundle message, String sParamName)
     {
@@ -157,7 +174,7 @@ public class WonderPushLockscreenFragment extends Fragment implements AdendaFrag
     		return null;
     	
     	String sDateTimeColor = message.getString( sParamName);
-    	if ( sDateTimeColor == null)
+    	if ( sDateTimeColor == null || !isHexValid(sDateTimeColor))
     		return null;
     	
     	return Long.parseLong(sDateTimeColor, 16);

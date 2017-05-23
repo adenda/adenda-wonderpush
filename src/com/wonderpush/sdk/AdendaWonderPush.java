@@ -1,10 +1,9 @@
-package com.adenda.plugin.wonderpushplugin;
+package com.wonderpush.sdk;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.util.Log;
-
 import com.wonderpush.sdk.WonderPush;
 
 public class AdendaWonderPush extends WonderPush 
@@ -15,7 +14,7 @@ public class AdendaWonderPush extends WonderPush
         try {
         		trackData.put("campaignId", campaignId);
         		trackData.put("notificationId", notifId);
-        		trackData.put("actionDate", getTime());
+				trackData.put("actionDate", TimeSync.getTime());
 		} catch (JSONException e) {
 			Log.e(AdendaWonderPush.class.getSimpleName(), e.getLocalizedMessage() != null ? e.getLocalizedMessage() : "Could not form JSONObject");
 			e.printStackTrace();
